@@ -13,6 +13,7 @@ group :test do
   gem 'chefspec',   '~> 4.0.2'
   gem 'rubocop',    '~> 0.26.1'
   gem 'foodcritic', '~> 4.0'
+  gem 'coveralls',  require: false
 end
 
 group :openstack do

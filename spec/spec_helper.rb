@@ -4,6 +4,7 @@ require 'chefspec'
 require 'chefspec/server'
 require 'chefspec/berkshelf'
 require 'chefspec/cacher'
+require 'coveralls'
 
 RSpec.configure do |config|
   config.platform = 'ubuntu'
@@ -11,4 +12,7 @@ RSpec.configure do |config|
   config.log_level = :error
 end
 
-at_exit { ChefSpec::Coverage.report! }
+at_exit do
+  ChefSpec::Coverage.report!
+  Coveralls.wear!
+end
