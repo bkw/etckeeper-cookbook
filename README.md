@@ -1,3 +1,11 @@
+etckeeper-cookbook
+==================
+
+![Release](http://img.shields.io/github/release/bkw/etckeeper-cookbook.svg)
+![Supermarket](http://img.shields.io/cookbook/v/etckeeper.svg)
+![Build Status](http://img.shields.io/travis/bkw/etckeeper-cookbook.svg)
+![Code Coverage](http://img.shields.io/coveralls/bkw/etckeeper-cookbook/covneralls.svg)
+
 Description
 ===========
 Install and configure etckeeper.
