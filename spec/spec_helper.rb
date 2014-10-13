@@ -12,7 +12,8 @@ RSpec.configure do |config|
   config.log_level = :error
 end
 
+Coveralls.wear!
+
 at_exit do
   ChefSpec::Coverage.report!
-  Coveralls.wear!
 end
