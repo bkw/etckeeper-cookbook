@@ -18,58 +18,84 @@
 # limitations under the License.
 #
 
+use_inline_resources if defined?(use_inline_resources)
+
+# Support whyrun
+def whyrun_supported?
+  true
+end
+
 action :create do
-  git_cfg = "git --git-dir=#{new_resource.directory}/.git config"
-
-  remote_exists = Mixlib::ShellOut.new(
-    "#{git_cfg} --get remote.origin.url #{new_resource.url}"
-  )
-
-  branch_exists = Mixlib::ShellOut.new(
-    "#{git_cfg} --get branch.master.remote #{new_resource.branch}"
-  )
-
-  remote_exists.run_command
-  execute "git-add-remote-#{new_resource.name}" do
-    command "#{git_cfg} --add remote.origin.url #{new_resource.url}"
-    only_if { remote_exists.exitstatus == 1 }
+  if @current_resource.exists
+    Chef::Log.info "#{ @new_resource } already exists - nothing to do."
+  else
+    converge_by("Create #{ @new_resource }") do
+      add_git_remote
+      add_git_remote_branch
+    end
   end
-
-  branch_exists.run_command
-  execute "git-set-branch-#{new_resource.branch}" do
-    command "#{git_cfg} --set branch.master.remote #{new_resource.branch}"
-    only_if { branch_exists.exitstatus == 1 }
-  end
-
-  new_resource.updated_by_last_action(
-    remote_exists.exitstatus == 1 || branch_exists.exitstatus == 1
-  )
 end
 
 action :delete do
+  if @current_resource.exists
+    converge_by("Delete #{ @new_resource }") do
+      delete_git_remote
+      delete_git_remote_branch
+    end
+  else
+    Chef::Log.info "#{ @new_resource } doesn't exists - can't delete."
+  end
+end
+
+def load_current_resource
+  @current_resource = Chef::Resource::EtckeeperGitRemote.new(@new_resource.name)
+  @current_resource.name(@new_resource.name)
+  @current_resource.directory(@new_resource.directory)
+  @current_resource.url(@new_resource.url)
+  @current_resource.branch(@new_resource.branch)
+
+  @current_resource.exists = (
+    remote_exists?(@current_resource.url, @current_resource.directory) &&
+    branch_exists?(@current_resource.branch, @current_resource.directory)
+  )
+end
+
+private
+
+def remote_exists?(url, directory)
+  git_cfg = "git --git-dir=#{directory}/.git config"
+  cmd = Mixlib::ShellOut.new(
+    "#{git_cfg} --get remote.origin.url #{url}"
+  )
+  cmd.run_command
+  cmd.exitstatus == 0
+end
+
+def branch_exists?(branch, directory)
+  git_cfg = "git --git-dir=#{directory}/.git config"
+  cmd = Mixlib::ShellOut.new(
+    "#{git_cfg} --get branch.master.remote #{branch}"
+  )
+  cmd.run_command
+  cmd.exitstatus == 0
+end
+
+def add_git_remote
+  return if remote_exists?(new_resource.url, new_resource.directory)
   git_cfg = "git --git-dir=#{new_resource.directory}/.git config"
-
-  remote_exists = Mixlib::ShellOut.new(
-    "#{git_cfg} --get remote.origin.url #{new_resource.url}"
+  cmd = Mixlib::ShellOut.new(
+    "#{git_cfg} --add remote.origin.url #{new_resource.url}"
   )
+  cmd.run_command
+  cmd.exitstatus == 0
+end
 
-  branch_exists = Mixlib::ShellOut.new(
-    "#{git_cfg} --get branch.master.remote #{new_resource.branch}"
+def add_git_remote_branch
+  return if branch_exists?(new_resource.branch, new_resource.directory)
+  git_cfg = "git --git-dir=#{new_resource.directory}/.git config"
+  cmd = Mixlib::ShellOut.new(
+    "#{git_cfg} --set branch.master.remote #{new_resource.branch}"
   )
-
-  remote_exists.run_command
-  execute "git-unset-remote-#{new_resource.name}" do
-    command "#{git_cfg} --unset remote.origin.url #{new_resource.url}"
-    only_if { remote_exists.exitstatus == 0 }
-  end
-
-  branch_exists.run_command
-  execute "git-set-branch-#{new_resource.branch}" do
-    command "#{git_cfg} --unset branch.master.remote #{new_resource.branch}"
-    only_if { branch_exists.exitstatus == 0 }
-  end
-
-  new_resource.updated_by_last_action(
-    remote_exists.exitstatus == 1 || branch_exists.exitstatus == 1
-  )
+  cmd.run_command
+  cmd.exitstatus == 0
 end

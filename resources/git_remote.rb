@@ -18,14 +18,17 @@
 # limitations under the License.
 #
 
-actions :create,
-        :delete
+actions :create, :delete
 
-attribute :url, kind_of: String, name_attribute: true
+default_action :create
+
+attribute :url,       kind_of: String, required: true, name_attribute: true
 attribute :directory, kind_of: String, default: '/etc'
-attribute :branch, kind_of: String, default: 'master'
+attribute :branch,    kind_of: String, default: 'master'
 
 def initialize(*args)
   super
   @action = :create
 end
+
+attr_accessor :exists
