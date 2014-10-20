@@ -81,13 +81,6 @@ describe 'etckeeper::config' do
   end
 
   context 'with attribute use_remote' do
-    before do
-      stub_command("#{git_cmd} config --get remote.origin.url")
-        .and_return(false)
-      stub_command("#{git_cmd} config --get branch.master.remote")
-        .and_return(false)
-    end
-
     cached(:chef_run) do
       ChefSpec::Runner.new do |node|
         node.set['etckeeper']['use_remote'] = true
@@ -119,9 +112,10 @@ describe 'etckeeper::config' do
     end
 
     it 'creates a etckeeper_git_remote resource' do
+      attr = chef_run.node['etckeeper']
       expect(chef_run).to create_etckeeper_git_remote(//)
-        .with(url: "#{chef_run.node['etckeeper']['git_host']}:#{chef_run.node['etckeeper']['git_repo']}")
-        .with(branch: chef_run.node['etckeeper']['git_branch'])
+        .with(url: "#{attr['git_host']}:#{attr['git_repo']}")
+        .with(branch: attr['git_branch'])
     end
 
     context 'without email address in git config' do
@@ -163,14 +157,23 @@ describe 'etckeeper::config' do
     end
 
     context 'without set git remote' do
-      before do
-        stub_command(
-          "#{git_cmd} config --get remote.origin.url github.com:etckeeper"
-        ).and_return(false)
+      let(:remote_check) { double('shellout remote check') }
+      let(:branch_check) { double('shellout branch check') }
 
-        stub_command(
-          "#{git_cmd} config --get branch.master.remote fauxhai.local"
-        ).and_return(false)
+      before do
+        git_cfg = 'git --git-dir=/etc/.git config'
+
+        allow(Mixlib::ShellOut).to receive(:new)
+          .with("#{git_cfg} --get remote.origin.url github.com:etckeeper")
+          .and_return(remote_check)
+        allow(remote_check).to receive(:run_command)
+        allow(remote_check).to receive(:exitstatus).and_return(1)
+
+        allow(Mixlib::ShellOut).to receive(:new)
+          .with("#{git_cfg} --get branch.master.remote fauxhai.local")
+          .and_return(branch_check)
+        allow(branch_check).to receive(:run_command)
+        allow(branch_check).to receive(:exitstatus).and_return(1)
 
         stub_command(
           "#{git_cmd} config --get user.email | fgrep -q 'x@example.com'"
@@ -187,19 +190,32 @@ describe 'etckeeper::config' do
       it 'adds the configured origin' do
         expect(chef_run).to run_execute(
           'git-add-remote-github.com:etckeeper/fauxhai.local'
-        ).with(command: "#{git_cmd} config --add remote.origin.url github.com:etckeeper")
+        ).with(
+          command:
+            "#{git_cmd} config --add remote.origin.url github.com:etckeeper"
+        )
       end
     end
 
     context 'with set git remote' do
-      before do
-        stub_command(
-          "#{git_cmd} config --get remote.origin.url github.com:etckeeper"
-        ).and_return(true)
+      let(:remote_check) { double('shellout remote check') }
+      let(:branch_check) { double('shellout branch check') }
 
-        stub_command(
-          "#{git_cmd} config --get branch.master.remote fauxhai.local"
-        ).and_return(false)
+      before do
+        git_cfg = 'git --git-dir=/etc/.git config'
+
+        allow(Mixlib::ShellOut).to receive(:new)
+          .with("#{git_cfg} --get remote.origin.url github.com:etckeeper")
+          .and_return(remote_check)
+        allow(remote_check).to receive(:run_command)
+        allow(remote_check).to receive(:exitstatus)
+          .and_return(1)
+
+        allow(Mixlib::ShellOut).to receive(:new)
+          .with("#{git_cfg} --get branch.master.remote fauxhai.local")
+          .and_return(branch_check)
+        allow(branch_check).to receive(:run_command)
+        allow(branch_check).to receive(:exitstatus).and_return(0)
 
         stub_command(
           "#{git_cmd} config --get user.email | fgrep -q 'x@example.com'"
@@ -220,14 +236,23 @@ describe 'etckeeper::config' do
     end
 
     context 'without set remote git branch' do
+      let(:remote_check) { double('shellout remote check') }
+      let(:branch_check) { double('shellout branch check') }
       before do
-        stub_command(
-          "#{git_cmd} config --get remote.origin.url github.com:etckeeper"
-        ).and_return(true)
+        git_cfg = 'git --git-dir=/etc/.git config'
 
-        stub_command(
-          "#{git_cmd} config --get branch.master.remote fauxhai.local"
-        ).and_return(false)
+        allow(Mixlib::ShellOut).to receive(:new)
+          .with("#{git_cfg} --get remote.origin.url github.com:etckeeper")
+          .and_return(remote_check)
+        allow(remote_check).to receive(:run_command)
+        allow(remote_check).to receive(:exitstatus)
+          .and_return(0)
+
+        allow(Mixlib::ShellOut).to receive(:new)
+          .with("#{git_cfg} --get branch.master.remote fauxhai.local")
+          .and_return(branch_check)
+        allow(branch_check).to receive(:run_command)
+        allow(branch_check).to receive(:exitstatus).and_return(1)
 
         stub_command(
           "#{git_cmd} config --get user.email | fgrep -q 'x@example.com'"
@@ -250,14 +275,23 @@ describe 'etckeeper::config' do
     end
 
     context 'with existing remote git branch' do
+      let(:remote_check) { double('shellout remote check') }
+      let(:branch_check) { double('shellout branch check') }
       before do
-        stub_command(
-          "#{git_cmd} config --get remote.origin.url github.com:etckeeper"
-        ).and_return(true)
+        git_cfg = 'git --git-dir=/etc/.git config'
 
-        stub_command(
-          "#{git_cmd} config --get branch.master.remote fauxhai.local"
-        ).and_return(true)
+        allow(Mixlib::ShellOut).to receive(:new)
+          .with("#{git_cfg} --get remote.origin.url github.com:etckeeper")
+          .and_return(remote_check)
+        allow(remote_check).to receive(:run_command)
+        allow(remote_check).to receive(:exitstatus)
+          .and_return(0)
+
+        allow(Mixlib::ShellOut).to receive(:new)
+          .with("#{git_cfg} --get branch.master.remote fauxhai.local")
+          .and_return(branch_check)
+        allow(branch_check).to receive(:run_command)
+        allow(branch_check).to receive(:exitstatus).and_return(0)
 
         stub_command(
           "#{git_cmd} config --get user.email | fgrep -q 'x@example.com'"

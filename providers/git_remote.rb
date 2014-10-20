@@ -19,27 +19,57 @@
 #
 
 action :create do
-  git_cmd = "git --git-dir=#{new_resource.directory}/.git"
+  git_cfg = "git --git-dir=#{new_resource.directory}/.git config"
+
+  remote_exists = Mixlib::ShellOut.new(
+    "#{git_cfg} --get remote.origin.url #{new_resource.url}"
+  )
+
+  branch_exists = Mixlib::ShellOut.new(
+    "#{git_cfg} --get branch.master.remote #{new_resource.branch}"
+  )
+
+  remote_exists.run_command
   execute "git-add-remote-#{new_resource.name}" do
-    command "#{git_cmd} config --add remote.origin.url #{new_resource.url}"
-    not_if "#{git_cmd} config --get remote.origin.url #{new_resource.url}"
+    command "#{git_cfg} --add remote.origin.url #{new_resource.url}"
+    only_if { remote_exists.exitstatus == 1 }
   end
 
+  branch_exists.run_command
   execute "git-set-branch-#{new_resource.branch}" do
-    command "#{git_cmd} config --set branch.master.remote #{new_resource.branch}"
-    not_if "#{git_cmd} config --get branch.master.remote #{new_resource.branch}"
+    command "#{git_cfg} --set branch.master.remote #{new_resource.branch}"
+    only_if { branch_exists.exitstatus == 1 }
   end
+
+  new_resource.updated_by_last_action(
+    remote_exists.exitstatus == 1 || branch_exists.exitstatus == 1
+  )
 end
 
 action :delete do
-  git_cmd = "git --git-dir=#{new_resource.directory}/.git"
+  git_cfg = "git --git-dir=#{new_resource.directory}/.git config"
+
+  remote_exists = Mixlib::ShellOut.new(
+    "#{git_cfg} --get remote.origin.url #{new_resource.url}"
+  )
+
+  branch_exists = Mixlib::ShellOut.new(
+    "#{git_cfg} --get branch.master.remote #{new_resource.branch}"
+  )
+
+  remote_exists.run_command
   execute "git-unset-remote-#{new_resource.name}" do
-    command "#{git_cmd} config --unset remote.origin.url #{new_resource.url}"
-    only_if "#{git_cmd} config --get remote.origin.url #{new_resource.url}"
+    command "#{git_cfg} --unset remote.origin.url #{new_resource.url}"
+    only_if { remote_exists.exitstatus == 0 }
   end
 
+  branch_exists.run_command
   execute "git-set-branch-#{new_resource.branch}" do
-    command "#{git_cmd} config --add branch.master.remote #{new_resource.branch}"
-    not_if "#{git_cmd} config --get branch.master.remote #{new_resource.branch}"
+    command "#{git_cfg} --unset branch.master.remote #{new_resource.branch}"
+    only_if { branch_exists.exitstatus == 0 }
   end
+
+  new_resource.updated_by_last_action(
+    remote_exists.exitstatus == 1 || branch_exists.exitstatus == 1
+  )
 end
