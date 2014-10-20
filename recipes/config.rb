@@ -63,6 +63,7 @@ if node['etckeeper']['use_remote']
   etckeeper_git_remote "#{origin}/#{branch}" do
     url origin
     branch branch
+    action :create
   end
 end
 
