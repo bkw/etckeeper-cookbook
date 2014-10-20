@@ -167,23 +167,29 @@ describe 'etckeeper::config' do
         allow(Mixlib::ShellOut).to receive(:new)
           .and_call_original
 
+        # stub check for exisiting remote
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --get remote.origin.url github.com:etckeeper")
           .and_return(remote_check)
         allow(remote_check).to receive(:run_command)
-        allow(remote_check).to receive(:exitstatus).and_return(1)
+        allow(remote_check).to receive(:exitstatus)
+          .and_return(1) # remote does not exist
 
+        # stub setting remote
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --add remote.origin.url github.com:etckeeper")
           .and_return(remote_add)
         allow(remote_add).to receive(:run_command)
-        allow(remote_add).to receive(:exitstatus).and_return(0)
+          .and_return(true)
+        allow(remote_add).to receive(:exitstatus)
+          .and_return(0)
 
+        # stub checking for existing branch
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --get branch.master.remote fauxhai.local")
           .and_return(branch_check)
         allow(branch_check).to receive(:run_command)
-        allow(branch_check).to receive(:exitstatus).and_return(1)
+        allow(branch_check).to receive(:exitstatus)
 
         stub_command(
           "#{git_cmd} config --get user.email | fgrep -q 'x@example.com'"
@@ -198,7 +204,8 @@ describe 'etckeeper::config' do
       end
 
       it 'adds the configured origin' do
-        expect(remote_add).not_to receive(:run_command)
+        expect(remote_add).to receive(:run_command)
+        chef_run
       end
     end
 
@@ -210,27 +217,25 @@ describe 'etckeeper::config' do
       before do
         git_cfg = 'git --git-dir=/etc/.git config'
 
-        allow(Mixlib::ShellOut).to receive(:new)
-          .and_call_original
-
+        # stub check for exisiting remote
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --get remote.origin.url github.com:etckeeper")
           .and_return(remote_check)
         allow(remote_check).to receive(:run_command)
         allow(remote_check).to receive(:exitstatus)
-          .and_return(1)
+          .and_return(0) # remote exists
 
+        # stub setting remote
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --add remote.origin.url github.com:etckeeper")
           .and_return(remote_add)
         allow(remote_add).to receive(:run_command)
-        allow(remote_add).to receive(:exitstatus).and_return(0)
 
+        # stub checking existing branch
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --get branch.master.remote fauxhai.local")
           .and_return(branch_check)
         allow(branch_check).to receive(:run_command)
-        allow(branch_check).to receive(:exitstatus).and_return(0)
 
         stub_command(
           "#{git_cmd} config --get user.email | fgrep -q 'x@example.com'"
@@ -255,22 +260,23 @@ describe 'etckeeper::config' do
       before do
         git_cfg = 'git --git-dir=/etc/.git config'
 
-        allow(Mixlib::ShellOut).to receive(:new)
-          .and_call_original
-
+        # stub check for exisiting remote
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --get remote.origin.url github.com:etckeeper")
           .and_return(remote_check)
         allow(remote_check).to receive(:run_command)
         allow(remote_check).to receive(:exitstatus)
-          .and_return(0)
+          .and_return(0) # remote exists
 
+        # stub check for exisiting branch
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --get branch.master.remote fauxhai.local")
           .and_return(branch_check)
         allow(branch_check).to receive(:run_command)
-        allow(branch_check).to receive(:exitstatus).and_return(1)
+        allow(branch_check).to receive(:exitstatus)
+          .and_return(1) # branch does not exist
 
+        # stub setting the branch
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --set branch.master.remote fauxhai.local")
           .and_return(branch_set)
@@ -289,7 +295,8 @@ describe 'etckeeper::config' do
       end
 
       it 'sets the branch' do
-        expect(branch_set).not_to receive(:run_command)
+        expect(branch_set).to receive(:run_command)
+        chef_run
       end
     end
 
@@ -300,20 +307,20 @@ describe 'etckeeper::config' do
       before do
         git_cfg = 'git --git-dir=/etc/.git config'
 
-        allow(Mixlib::ShellOut).to receive(:new)
-          .and_call_original
+        # stub check for exisiting remote
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --get remote.origin.url github.com:etckeeper")
           .and_return(remote_check)
         allow(remote_check).to receive(:run_command)
         allow(remote_check).to receive(:exitstatus)
-          .and_return(0)
+          .and_return(0) # remote exists
 
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --get branch.master.remote fauxhai.local")
           .and_return(branch_check)
         allow(branch_check).to receive(:run_command)
-        allow(branch_check).to receive(:exitstatus).and_return(0)
+        allow(branch_check).to receive(:exitstatus)
+          .and_return(0) # branch exists
 
         allow(Mixlib::ShellOut).to receive(:new)
           .with("#{git_cfg} --set branch.master.remote fauxhai.local")
