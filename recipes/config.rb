@@ -59,15 +59,10 @@ if node['etckeeper']['use_remote']
   end
 
   origin = "#{node['etckeeper']['git_host']}:#{node['etckeeper']['git_repo']}"
-  execute "#{git_cmd} remote add origin #{origin}" do
-    cwd '/etc'
-    not_if "#{git_cmd} config --get remote.origin.url"
-  end
-
   branch = node['etckeeper']['git_branch']
-  execute "#{git_cmd} push --set-upstream origin #{branch}" do
-    cwd '/etc'
-    not_if "#{git_cmd} config --get branch.master.remote"
+  etckeeper_git_remote "#{origin}/#{branch}" do
+    url origin
+    branch branch
   end
 end
 

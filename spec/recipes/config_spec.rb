@@ -28,6 +28,10 @@ describe 'etckeeper::config' do
       .with_content(/etckeeper commit "daily autocommit"/)
   end
 
+  it 'does not create a etckeeper_git_remote resource by default' do
+    expect(chef_run).not_to create_etckeeper_git_remote(//)
+  end
+
   context 'with attribute daily_auto_commits set to false' do
     cached(:chef_run) do
       ChefSpec::Runner.new do |node|
@@ -65,7 +69,11 @@ describe 'etckeeper::config' do
         .and_return(true)
     end
 
-    cached(:chef_run) { ChefSpec::Runner.new.converge(described_recipe) }
+    cached(:chef_run) do
+      ChefSpec::Runner.new(
+        step_into: ['etckeeper_git_remote']
+      ).converge(described_recipe)
+    end
 
     it 'does not run "etckeeper init" again' do
       expect(chef_run).not_to run_execute('etckeeper init')
@@ -110,6 +118,12 @@ describe 'etckeeper::config' do
         .with_content(%r{^\s+IdentityFile\s+/root/.ssh/etckeeper_key$})
     end
 
+    it 'creates a etckeeper_git_remote resource' do
+      expect(chef_run).to create_etckeeper_git_remote(//)
+        .with(url: "#{chef_run.node['etckeeper']['git_host']}:#{chef_run.node['etckeeper']['git_repo']}")
+        .with(branch: chef_run.node['etckeeper']['git_branch'])
+    end
+
     context 'without email address in git config' do
       before do
         stub_command(
@@ -149,79 +163,116 @@ describe 'etckeeper::config' do
     end
 
     context 'without set git remote' do
+      before do
+        stub_command(
+          "#{git_cmd} config --get remote.origin.url github.com:etckeeper"
+        ).and_return(false)
+
+        stub_command(
+          "#{git_cmd} config --get branch.master.remote fauxhai.local"
+        ).and_return(false)
+
+        stub_command(
+          "#{git_cmd} config --get user.email | fgrep -q 'x@example.com'"
+        ).and_return(false)
+      end
+
+      cached(:chef_run) do
+        ChefSpec::Runner.new(step_into: ['etckeeper_git_remote']) do |node|
+          node.set['etckeeper']['use_remote'] = true
+          node.set['etckeeper']['git_email'] = 'x@example.com'
+        end.converge(described_recipe)
+      end
+
       it 'adds the configured origin' do
-        host = chef_run.node['etckeeper']['git_host']
-        repo = chef_run.node['etckeeper']['git_repo']
         expect(chef_run).to run_execute(
-          "#{git_cmd} remote add origin #{host}:#{repo}"
-        )
+          'git-add-remote-github.com:etckeeper/fauxhai.local'
+        ).with(command: "#{git_cmd} config --add remote.origin.url github.com:etckeeper")
       end
     end
 
     context 'with set git remote' do
       before do
-        stub_command("#{git_cmd} config --get remote.origin.url")
-          .and_return('something')
-        stub_command("#{git_cmd} config --get branch.master.remote")
-          .and_return('something')
+        stub_command(
+          "#{git_cmd} config --get remote.origin.url github.com:etckeeper"
+        ).and_return(true)
+
+        stub_command(
+          "#{git_cmd} config --get branch.master.remote fauxhai.local"
+        ).and_return(false)
+
+        stub_command(
+          "#{git_cmd} config --get user.email | fgrep -q 'x@example.com'"
+        ).and_return('something')
       end
 
       cached(:chef_run) do
-        ChefSpec::Runner.new do |node|
+        ChefSpec::Runner.new(step_into: ['etckeeper_git_remote']) do |node|
           node.set['etckeeper']['use_remote'] = true
         end.converge(described_recipe)
       end
 
       it 'does not change the configured origin' do
-        host = chef_run.node['etckeeper']['git_host']
-        repo = chef_run.node['etckeeper']['git_repo']
         expect(chef_run).not_to run_execute(
-          "#{git_cmd} remote add origin #{host}:#{repo}"
+          "#{git_cmd}-add-remote-github.com:etckeeper/fauxhai.local"
         )
       end
     end
 
     context 'without set remote git branch' do
       before do
-        stub_command("#{git_cmd} config --get remote.origin.url")
-          .and_return('something')
-        stub_command("#{git_cmd} config --get branch.master.remote")
-          .and_return(false)
+        stub_command(
+          "#{git_cmd} config --get remote.origin.url github.com:etckeeper"
+        ).and_return(true)
+
+        stub_command(
+          "#{git_cmd} config --get branch.master.remote fauxhai.local"
+        ).and_return(false)
+
+        stub_command(
+          "#{git_cmd} config --get user.email | fgrep -q 'x@example.com'"
+        ).and_return(true)
       end
 
       cached(:chef_run) do
-        ChefSpec::Runner.new do |node|
+        ChefSpec::Runner.new(step_into: ['etckeeper_git_remote']) do |node|
           node.set['etckeeper']['use_remote'] = true
         end.converge(described_recipe)
       end
 
       it 'sets the branch' do
         branch = chef_run.node['etckeeper']['git_branch']
-        expect(chef_run).to run_execute(
-          "#{git_cmd} push --set-upstream origin #{branch}"
-        )
+        expect(chef_run).to run_execute("git-set-branch-#{branch}")
+          .with(
+            command: "#{git_cmd} config --set branch.master.remote #{branch}"
+          )
       end
     end
 
     context 'with existing remote git branch' do
       before do
-        stub_command("#{git_cmd} config --get remote.origin.url")
-          .and_return('something')
-        stub_command("#{git_cmd} config --get branch.master.remote")
-          .and_return('something')
+        stub_command(
+          "#{git_cmd} config --get remote.origin.url github.com:etckeeper"
+        ).and_return(true)
+
+        stub_command(
+          "#{git_cmd} config --get branch.master.remote fauxhai.local"
+        ).and_return(true)
+
+        stub_command(
+          "#{git_cmd} config --get user.email | fgrep -q 'x@example.com'"
+        ).and_return(true)
       end
 
       cached(:chef_run) do
-        ChefSpec::Runner.new do |node|
+        ChefSpec::Runner.new(step_into: ['etckeeper_git_remote']) do |node|
           node.set['etckeeper']['use_remote'] = true
         end.converge(described_recipe)
       end
 
       it 'does not set the branch' do
         branch = chef_run.node['etckeeper']['git_branch']
-        expect(chef_run).not_to run_execute(
-          "#{git_cmd} push --set-upstream origin #{branch}"
-        )
+        expect(chef_run).not_to run_execute("git-set-branch-#{branch}")
       end
     end
   end
