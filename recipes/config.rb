@@ -21,6 +21,13 @@
 
 git_cmd = 'git --git-dir=/etc/.git'
 
+directory node['etckeeper']['dir'] do
+  owner 'root'
+  group 'root'
+  mode '0755'
+  recursive true
+end
+
 template node['etckeeper']['config'] do
   source 'etckeeper.conf.erb'
   mode 0644

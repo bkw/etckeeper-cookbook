@@ -16,6 +16,14 @@ describe 'etckeeper::config' do
     ChefSpec::Runner.new.converge(described_recipe)
   end
 
+  it 'creates the etckeeper config directory' do
+    expect(chef_run).to create_directory('/etc/etckeeper')
+      .with(owner: 'root')
+      .with(group: 'root')
+      .with(recursive: true)
+      .with(mode: '0755')
+  end
+
   it 'creates the etckeeper config file' do
     expect(chef_run).to render_file('/etc/etckeeper/etckeeper.conf')
   end
