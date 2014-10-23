@@ -15,6 +15,7 @@ end
 
 depends "chef_handler"
 depends "git"
+depends "ssh"
 
 attribute "etckeeper/dir",
   :display_name => "Path for etckeeper dir",

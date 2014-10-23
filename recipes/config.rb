@@ -19,6 +19,8 @@
 # limitations under the License.
 #
 
+include_recipe 'ssh'
+
 git_cmd = 'git --git-dir=/etc/.git'
 
 directory node['etckeeper']['dir'] do
@@ -46,31 +48,15 @@ execute 'etckeeper_set_git_email' do
   not_if "#{git_cmd} config --get user.email | fgrep -q '#{email}'"
 end
 
-if node['etckeeper']['use_remote'] && node['etckeeper']['vcs'] == 'git'
-  directory '/root/.ssh' do
-    owner 'root'
-    group 'root'
-    mode '0700'
-    action :create
-  end
-
-  cookbook_file '/root/.ssh/etckeeper_key' do
-    source 'etckeeper_key'
-    mode '0600'
-    action :create_if_missing
-  end
-
-  template '/root/.ssh/config' do
-    source 'config_ssh.erb'
-    mode '0600'
-  end
-
-  origin = "#{node['etckeeper']['git_host']}:#{node['etckeeper']['git_repo']}"
-  branch = node['etckeeper']['git_branch']
-  etckeeper_git_remote "#{origin}/#{branch}" do
-    url origin
-    branch branch
-    action :create
+etckeeper_git_remote node['etckeeper']['git_host'] do
+  host node['etckeeper']['git_host']
+  repository node['etckeeper']['git_repo']
+  sshkey 'testing-key'
+  branch node['etckeeper']['git_branch']
+  user node['etckeeper']['git_user']
+  action :create
+  only_if do
+    node['etckeeper']['use_remote'] && node['etckeeper']['vcs'] == 'git'
   end
 end
 

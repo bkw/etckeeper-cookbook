@@ -10,6 +10,7 @@ default['etckeeper']['git_port'] = 22
 default['etckeeper']['git_repo'] = 'etckeeper'
 default['etckeeper']['git_branch'] = node['fqdn']
 default['etckeeper']['git_email'] = "root@#{node['fqdn']}"
+default['etckeeper']['git_user'] = 'git'
 
 case node['platform']
 when 'centos', 'redhat', 'amazon', 'scientific', 'fedora'

@@ -22,9 +22,13 @@ actions :create, :delete
 
 default_action :create
 
-attribute :url,       kind_of: String, required: true, name_attribute: true
-attribute :directory, kind_of: String, default: '/etc'
-attribute :branch,    kind_of: String, default: 'master'
+attribute :host,       kind_of: String, required: true, name_attribute: true
+attribute :repository, kind_of: String, required: true
+attribute :port,       kind_of: Fixnum, default: 22
+attribute :user,       kind_of: String, default: 'git'
+attribute :directory,  kind_of: String, default: '/etc'
+attribute :branch,     kind_of: String, default: 'master'
+attribute :sshkey,     kind_of: String, required: true
 
 def initialize(*args)
   super
