@@ -46,7 +46,7 @@ execute 'etckeeper_set_git_email' do
   not_if "#{git_cmd} config --get user.email | fgrep -q '#{email}'"
 end
 
-if node['etckeeper']['use_remote']
+if node['etckeeper']['use_remote'] && node['etckeeper']['vcs'] == 'git'
   directory '/root/.ssh' do
     owner 'root'
     group 'root'
