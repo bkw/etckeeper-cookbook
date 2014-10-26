@@ -180,11 +180,12 @@ def set_ssh_config
   keyfile = get_key_filename(new_resource.name)
   port = new_resource.port
   host = new_resource.host
+  user = new_resource.user
 
   ssh_config new_resource.name do
     user 'root'
     host host
-    options user: 'git',
+    options user: user,
             Port: port,
             StrictHostKeyChecking: 'no',
             IdentityFile: keyfile

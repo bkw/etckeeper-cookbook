@@ -1,6 +1,7 @@
 AllCops:
   Exclude:
     - metadata.rb
+    - "*/metadata.rb"
     - Vagrantfile
     - Thorfile
 Documentation:

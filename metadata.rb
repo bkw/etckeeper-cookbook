@@ -1,16 +1,18 @@
 name             "etckeeper_git"
-maintainer       'Bernhard K. Weisshuhn'
-maintainer_email 'bkw@codingforce.com'
-license          'Apache 2.0'
-description      'Installs/Configures etckeeper and remotes'
+maintainer       "Bernhard K. Weisshuhn"
+maintainer_email "bkw@codingforce.com"
+license          "Apache 2.0"
+description      "Installs/Configures etckeeper and remotes"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          '2.0.0'
-replaces         'etckeeper'
-recipe           'etckeeper_git', 'Install etckeeper'
-recipe           'etckeeper::enable', 'configure and enable etckeeper'
-recipe           'etckeeper::chef', 'install chef-handler to commit changes by chef to etckeeper'
+version          "2.0.0"
+replaces         "etckeeper"
+recipe           "etckeeper_git", "Install etckeeper"
+recipe           "etckeeper::enable", "configure and enable etckeeper"
+recipe           "etckeeper::chef", "install chef-handler to commit changes by chef to etckeeper"
 
-%w{redhat centos scientific fedora debian ubuntu arch freebsd amazon gentoo}.each do |os|
+%w{
+  redhat centos scientific fedora debian ubuntu arch freebsd amazon gentoo
+}.each do |os|
   supports os
 end
 

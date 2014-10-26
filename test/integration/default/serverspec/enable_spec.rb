@@ -9,7 +9,10 @@ describe 'etckeeper_git::enable' do
     it { should be_grouped_into 'root' }
     it { should be_mode 644 }
     its(:content) { should match(/VCS="git"/) }
-    its(:content) { should match(/^GIT_COMMIT_OPTIONS="--author 'Etckeeper <root@etckeeper\.example\.com>'"$/) }
+    author = Regexp.escape('Etckeeper <root@etckeeper.example.com>')
+    its(:content)  do
+      should match(/^GIT_COMMIT_OPTIONS="--author '#{author}'"$/)
+    end
   end
 
   describe file('/etc/cron.daily/etckeeper') do
