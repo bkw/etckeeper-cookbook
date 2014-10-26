@@ -24,7 +24,8 @@ platforms:
 suites:
 - name: default
   run_list:
-  - "recipe[etckeeper::commit]"
-  - "recipe[etckeeper]"
+  - "recipe[etckeeper_git]"
+  - "recipe[etckeeper_git::enable]"
+  - "recipe[etckeeper_git::chef]"
   attributes:
     fqdn: etckeeper.example.com

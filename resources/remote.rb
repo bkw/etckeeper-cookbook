@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
-# Cookbook Name:: etckeeper
-# Resources:: git_remote
+# Cookbook Name:: etckeeper_git
+# Resources:: remote
 #
 # Copyright 2014, Bernhard K. Weisshuhn <bkw@codingforce.com>
 #

@@ -1,7 +1,7 @@
 # encoding: utf-8
 #
-# Cookbook Name:: etckeeper
-# Provider:: git_remote
+# Cookbook Name:: etckeeper_git
+# Provider:: remote
 #
 # Copyright 2014, Bernhard K. Weisshuhn <bkw@codingforce.com>
 #
@@ -34,6 +34,7 @@ action :create do
       set_ssh_config
       add_git_remote
       add_git_remote_branch
+      use_remote
     end
   end
 end
@@ -43,6 +44,7 @@ action :delete do
     converge_by("Delete #{ @new_resource }") do
       delete_git_remote_branch
       delete_git_remote
+      dont_use_remote
       delete_ssh_config
       delete_ssh_key
     end
@@ -61,7 +63,7 @@ def load_current_resource
   @current_resource.branch(@new_resource.branch)
   @current_resource.sshkey(@new_resource.sshkey)
 
-  remote = get_remote_url(
+  url = get_remote_url(
     user: @current_resource.user,
     host: @current_resource.host,
     port: @current_resource.port,
@@ -69,10 +71,13 @@ def load_current_resource
   )
 
   @current_resource.exists = (
-    remote_exists?(remote, @current_resource.directory) &&
+    remote_exists_with_url?(
+      @current_resource.name, url, @current_resource.directory
+    ) &&
     branch_exists?(@current_resource.branch, @current_resource.directory) &&
-    ssh_key_exists?(@current_resource.name, @current_resource.sshkey)
-    ssh_config_exists?(@current_resource.host)
+    ssh_key_exists?(@current_resource.name, @current_resource.sshkey) &&
+    ssh_config_exists?(@current_resource.host) &&
+    remote_used?(@current_resource.name)
   )
 end
 
@@ -81,7 +86,16 @@ private
 def remote_exists?(remote, directory)
   git_cfg = "git --git-dir=#{directory}/.git config"
   cmd = Mixlib::ShellOut.new(
-    "#{git_cfg} --get remote.origin.url #{remote}"
+    "#{git_cfg} --get remote.#{remote}.url"
+  )
+  cmd.run_command
+  cmd.exitstatus == 0
+end
+
+def remote_exists_with_url?(remote, url, directory)
+  git_cfg = "git --git-dir=#{directory}/.git config"
+  cmd = Mixlib::ShellOut.new(
+    "#{git_cfg} --get remote.#{remote}.url #{url}"
   )
   cmd.run_command
   cmd.exitstatus == 0
@@ -108,6 +122,10 @@ def ssh_config_exists?(host)
   )
 end
 
+def remote_used?(name)
+  node['etckeeper_git']['remotes'].split(/\s+/).include? name
+end
+
 def add_ssh_key
   file get_key_filename(new_resource.name) do
     owner 'root'
@@ -119,16 +137,17 @@ def add_ssh_key
 end
 
 def add_git_remote
-  remote = get_remote_url(
+  url = get_remote_url(
     user: current_resource.user,
     host: current_resource.host,
     port: current_resource.port,
     repository: current_resource.repository
   )
-  return if remote_exists?(remote, new_resource.directory)
+  remote = current_resource.name
+  return if remote_exists_with_url?(remote, url, new_resource.directory)
   git_cfg = "git --git-dir=#{new_resource.directory}/.git config"
   cmd = Mixlib::ShellOut.new(
-    "#{git_cfg} --add remote.origin.url #{remote}"
+    "#{git_cfg} --add remote.#{remote}.url #{url}"
   )
   cmd.run_command
   cmd.exitstatus == 0
@@ -173,6 +192,14 @@ def set_ssh_config
   end
 end
 
+def use_remote
+  return if remote_used?(new_resource.name)
+  node.set['etckeeper_git']['remotes'] =
+    node['etckeeper_git']['remotes'].split(/\s+/)
+                                    .push(new_resource.name)
+                                    .join(' ')
+end
+
 def delete_ssh_key
   file get_key_filename(new_resource.name) do
     action :delete
@@ -180,16 +207,11 @@ def delete_ssh_key
 end
 
 def delete_git_remote
-  remote = get_remote_url(
-    user: new_resource.user,
-    host: new_resource.host,
-    port: new_resource.port,
-    repository: new_resource.repository
-  )
-  return unless remote_exists?(remote, new_resource.directory)
+  remote = new_resource.name
+  return unless remote_exists(remote, new_resource.directory)
   git_cfg = "git --git-dir=#{new_resource.directory}/.git config"
   cmd = Mixlib::ShellOut.new(
-    "#{git_cfg} --unset remote.origin.url #{remote}"
+    "#{git_cfg} remote remove #{remote}"
   )
   cmd.run_command
   cmd.exitstatus == 0
@@ -211,4 +233,12 @@ def delete_ssh_config
     host new_resource.host
     action :remove
   end
+end
+
+def dont_use_remote
+  return unless remote_used?(new_resource.name)
+  node.set['etckeeper_git']['remotes'] =
+    node['etckeeper_git']['remotes'].split(/\s+/)
+                                    .reject { |r| r == new_resource.name }
+                                    .join(' ')
 end

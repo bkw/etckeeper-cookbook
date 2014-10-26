@@ -2,14 +2,14 @@
 
 require 'spec_helper'
 
-describe 'etckeeper::config' do
-
+describe 'etckeeper_git::enable' do
   describe file('/etc/etckeeper/etckeeper.conf') do
     it { should be_file }
     it { should be_owned_by 'root' }
     it { should be_grouped_into 'root' }
     it { should be_mode 644 }
     its(:content) { should match(/VCS="git"/) }
+    its(:content) { should match(/^GIT_COMMIT_OPTIONS="--author 'Etckeeper <root@etckeeper\.example\.com>'"$/) }
   end
 
   describe file('/etc/cron.daily/etckeeper') do
@@ -34,9 +34,4 @@ describe 'etckeeper::config' do
     it { should be_grouped_into 'root' }
     it { should be_mode 644 }
   end
-
-  describe command('git --git-dir=/etc/.git config --get user.email') do
-    its(:stdout) { should eq "root@etckeeper.example.com\n" }
-  end
-
 end

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'etckeeper::commit' do
+describe 'etckeeper_git::chef' do
   describe file('/tmp/kitchen/handlers/etckeeper_handler.rb') do
     it { should be_file }
     it { should be_owned_by 'root' }
@@ -18,5 +18,4 @@ describe 'etckeeper::commit' do
   describe file('/etc/chef/client.d/etckeeper-handler.rb') do
     it { should_not be_file }
   end
-
 end

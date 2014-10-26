@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'etckeeper' do
+describe 'etckeeper_git' do
   describe package('etckeeper') do
     it { should be_installed }
   end

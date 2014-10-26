@@ -1,9 +1,12 @@
 # encoding: UTF-8
 #
-# Cookbook Name:: etckeeper
+# Cookbook Name:: etckeeper_git
 # Recipe:: default
 #
-# Copyright 2013, Alexander Saharchuk.
+# Copyright 2012-2013, Steffen Gebert / TYPO3 Association
+#                      Peter Niederlag / TYPO3 Association
+# Copyright 2013,      Alexander Saharchuk <pioneer@saharchuk.com>
+# Copyright 2014,      Bernhard K. Weisshuhn <bkw@codingforce.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,8 +30,5 @@ end
 # configured vcs:
 directory '/etc/.bzr' do
   action :delete
-  only_if { node['etckeeper']['vcs'] == 'git' }
   recursive true
 end
-
-include_recipe 'etckeeper::config'

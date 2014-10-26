@@ -2,15 +2,7 @@
 
 require 'spec_helper'
 
-describe 'etckeeper::default' do
-
-  before do
-    git_cmd = 'git --git-dir=/etc/.git'
-    stub_command(
-      "#{git_cmd} config --get user.email | fgrep -q 'root@fauxhai.local'"
-    ).and_return(true)
-  end
-
+describe 'etckeeper_git::default' do
   cached(:chef_run) do
     ChefSpec::Runner.new.converge(described_recipe)
   end
@@ -25,9 +17,5 @@ describe 'etckeeper::default' do
 
   it 'deletes an existing bzr directory' do
     expect(chef_run).to delete_directory('/etc/.bzr')
-  end
-
-  it 'includes etckeeper::config' do
-    expect(chef_run).to include_recipe('etckeeper::config')
   end
 end

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'etckeeper::commit' do
+describe 'etckeeper_git::chef' do
 
   cached(:chef_run) do
     ChefSpec::Runner.new.converge(described_recipe)

@@ -1,10 +1,12 @@
 # encoding: UTF-8
 #
-# Cookbook Name:: etckeeper
-# Recipe:: config
+# Cookbook Name:: etckeeper_git
+# Recipe:: enable
 #
 # Copyright 2012-2013, Steffen Gebert / TYPO3 Association
 #                      Peter Niederlag / TYPO3 Association
+# Copyright 2013,      Alexander Saharchuk <pioneer@saharchuk.com>
+# Copyright 2014,      Bernhard K. Weisshuhn <bkw@codingforce.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,50 +21,32 @@
 # limitations under the License.
 #
 
+include_recipe 'etckeeper_git'
 include_recipe 'ssh'
 
-git_cmd = 'git --git-dir=/etc/.git'
-
-directory node['etckeeper']['dir'] do
+hostname = node['fqdn'] || "#{node['hostname']}.local"
+node.default['etckeeper_git']['author'] = "Etckeeper <root@#{hostname}>"
+directory ::File.dirname(node['etckeeper_git']['config']) do
   owner 'root'
   group 'root'
   mode '0755'
   recursive true
+  action :create
 end
 
-template node['etckeeper']['config'] do
+template node['etckeeper_git']['config'] do
   source 'etckeeper.conf.erb'
   mode 0644
 end
 
 execute 'etckeeper init' do
-  only_if { node['etckeeper']['vcs'] == 'git' }
   not_if { File.exist?('/etc/.git/config') }
   cwd '/etc'
 end
 
-email = node['etckeeper']['git_email']
-execute 'etckeeper_set_git_email' do
-  command "#{git_cmd} config user.email '#{email}'"
-  only_if { node['etckeeper']['vcs'] == 'git' }
-  not_if "#{git_cmd} config --get user.email | fgrep -q '#{email}'"
-end
-
-etckeeper_git_remote node['etckeeper']['git_host'] do
-  host node['etckeeper']['git_host']
-  repository node['etckeeper']['git_repo']
-  sshkey 'testing-key'
-  branch node['etckeeper']['git_branch']
-  user node['etckeeper']['git_user']
-  action :create
-  only_if do
-    node['etckeeper']['use_remote'] && node['etckeeper']['vcs'] == 'git'
-  end
-end
-
 template '/etc/cron.daily/etckeeper' do
-  source 'etckeeper.erb'
+  source 'cron.daily/etckeeper.erb'
   mode '0755'
   owner 'root'
-  only_if { node['etckeeper']['daily_auto_commits'] }
+  not_if { node['etckeeper_git']['avoid_daily_auto_commits'] }
 end
