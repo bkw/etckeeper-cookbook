@@ -1,9 +1,10 @@
 AllCops:
   Exclude:
     - metadata.rb
-    - "*/metadata.rb"
+    - "**/metadata.rb"
     - Vagrantfile
     - Thorfile
+    - vendor/**/*
 Documentation:
   Enabled: false
 Metrics/MethodLength:

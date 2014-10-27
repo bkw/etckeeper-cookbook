@@ -5,7 +5,7 @@ require 'spec_helper'
 describe 'etckeeper_git::enable' do
 
   cached(:chef_run) do
-    ChefSpec::Runner.new.converge(described_recipe)
+    ChefSpec::SoloRunner.new.converge(described_recipe)
   end
 
   it 'creates the etckeeper config directory' do
@@ -34,7 +34,7 @@ describe 'etckeeper_git::enable' do
 
   context 'with attribute avoid_daily_auto_commits set to true' do
     cached(:chef_run) do
-      ChefSpec::Runner.new do |node|
+      ChefSpec::SoloRunner.new do |node|
         node.set['etckeeper_git']['avoid_daily_auto_commits'] = true
       end.converge(described_recipe)
     end
@@ -53,7 +53,7 @@ describe 'etckeeper_git::enable' do
         .and_return(false)
     end
 
-    cached(:chef_run) { ChefSpec::Runner.new.converge(described_recipe) }
+    cached(:chef_run) { ChefSpec::SoloRunner.new.converge(described_recipe) }
 
     it 'runs "etckeeper init"' do
       expect(chef_run).to run_execute('etckeeper init')
@@ -70,7 +70,7 @@ describe 'etckeeper_git::enable' do
     end
 
     cached(:chef_run) do
-      ChefSpec::Runner.new.converge(described_recipe)
+      ChefSpec::SoloRunner.new.converge(described_recipe)
     end
 
     it 'does not run "etckeeper init" again' do

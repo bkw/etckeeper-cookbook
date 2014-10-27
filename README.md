@@ -1,8 +1,15 @@
 etckeeper_git Cookbook
 ======================
 
+[![Supermarket](http://img.shields.io/cookbook/v/etckeeper_git.svg)][5]
+[![Build Status](http://img.shields.io/travis/bkw/chef-etckeeper_git.svg)][6]
+[![Code Coverage](http://img.shields.io/coveralls/bkw/chef-etckeeper_git.svg)][7]
+[![Dependencies](http://img.shields.io/gemnasium/bkw/chef-etckeeper_git.svg)][8]
+
+
 This cookbook installs and configures [etckeeper][1], a tool that lets you keep
-your /etc directory under version control.
+your /etc directory under version control. For that, this cookbook supports
+only `git` as a backend.
 
 NOTES
 -----
@@ -16,7 +23,10 @@ changes done by chef runs into etckeeper's repository.
 
 * git support only
 * LWRP `etckeeper_git_remote` for more flexible handling of git remotes
-* cleaned up attributes
+* support for multiple remotes
+* do not overwrite /root/.ssh/config
+* attributes renamed to match options in etckeeper.conf
+* unused attributes removed
 
 
 Requirements
@@ -166,4 +176,7 @@ See the License for the specific language governing permissions and
 [2]: https://supermarket.getchef.com/cookbooks/etckeeper
 [3]: https://github.com/opscode-cookbooks/chef-vault
 [4]: https://github.com/bkw/cookbook-etckeeper_git/blob/master/CONTRIBUTING.md
-
+[5]: https://supermarket.getchef.com/cookbooks/etckeeper_git
+[6]: http://travis-ci.org/bkw/chef-etckeeper_git
+[7]: https://coveralls.io/r/bkw/chef-etckeeper_git
+[8]: https://gemnasium.com/bkw/chef-etckeeper_git

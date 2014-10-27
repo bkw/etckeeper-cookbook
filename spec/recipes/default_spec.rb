@@ -4,7 +4,7 @@ require 'spec_helper'
 
 describe 'etckeeper_git::default' do
   cached(:chef_run) do
-    ChefSpec::Runner.new.converge(described_recipe)
+    ChefSpec::SoloRunner.new.converge(described_recipe)
   end
 
   it 'includes the git recipe' do

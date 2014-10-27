@@ -5,7 +5,7 @@ require 'spec_helper'
 describe 'etckeeper_git::chef' do
 
   cached(:chef_run) do
-    ChefSpec::Runner.new.converge(described_recipe)
+    ChefSpec::SoloRunner.new.converge(described_recipe)
   end
 
   it 'deletes the chef-handler include from the old cookbook' do

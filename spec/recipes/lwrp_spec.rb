@@ -49,7 +49,7 @@ describe 'etckeeper_git_test::default' do
     end
 
     let(:chef_run) do
-      ChefSpec::Runner.new(step_into: ['etckeeper_git_remote']) do |node|
+      ChefSpec::SoloRunner.new(step_into: ['etckeeper_git_remote']) do |node|
         node.set['etckeeper_git']['remotes'] = 'existing_remote'
       end.converge(described_recipe)
     end
