@@ -196,9 +196,10 @@ end
 def use_remote
   return if remote_used?(new_resource.name)
   node.set['etckeeper_git']['remotes'] =
-    node['etckeeper_git']['remotes'].split(/\s+/)
-                                    .push(new_resource.name)
-                                    .join(' ')
+    node['etckeeper_git']['remotes']
+    .split(/\s+/)
+    .push(new_resource.name)
+    .join(' ')
 end
 
 def delete_ssh_key
@@ -239,7 +240,8 @@ end
 def dont_use_remote
   return unless remote_used?(new_resource.name)
   node.set['etckeeper_git']['remotes'] =
-    node['etckeeper_git']['remotes'].split(/\s+/)
-                                    .reject { |r| r == new_resource.name }
-                                    .join(' ')
+    node['etckeeper_git']['remotes']
+    .split(/\s+/)
+    .reject { |r| r == new_resource.name }
+    .join(' ')
 end

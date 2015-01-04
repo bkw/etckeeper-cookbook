@@ -3,7 +3,6 @@
 require 'spec_helper'
 
 describe 'etckeeper_git::chef' do
-
   cached(:chef_run) do
     ChefSpec::SoloRunner.new.converge(described_recipe)
   end

@@ -3,7 +3,6 @@
 require 'spec_helper'
 
 describe 'etckeeper_git_test::default' do
-
   context 'new remote' do
     let(:remote_add)   { double('shellout remote add') }
     let(:remote_check) { double('shellout remote check') }
