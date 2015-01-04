@@ -1,17 +1,17 @@
 source 'https://rubygems.org'
 
-gem 'berkshelf', '~> 3.1.5'
+gem 'berkshelf', '~> 3.2.2'
 
 group :integration do
-  gem 'test-kitchen', '~> 1.0'
+  gem 'test-kitchen', '~> 1.2.1'
   gem 'kitchen-vagrant'
-  gem 'serverspec', '~> 2.1.0'
+  gem 'serverspec', '~> 2.7.1'
 end
 
 group :test do
   gem 'rake'
-  gem 'chefspec',   '~> 4.1.1'
-  gem 'rubocop',    '~> 0.26.1'
+  gem 'chefspec',   '~> 4.2.0'
+  gem 'rubocop',    '~> 0.28.0'
   gem 'foodcritic', '~> 4.0'
   gem 'coveralls',  require: false
 end
