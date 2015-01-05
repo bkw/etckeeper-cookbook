@@ -24,7 +24,7 @@ default['etckeeper_git']['git_author'] = nil
 default['etckeeper_git']['config'] = '/etc/etckeeper/etckeeper.conf'
 default['etckeeper_git']['avoid_daily_auto_commits'] = false
 default['etckeeper_git']['avoid_special_file_warning'] = true
-default['etckeeper_git']['avoid_commit_before_install'] = true
+default['etckeeper_git']['avoid_commit_before_install'] = false
 default['etckeeper_git']['remotes'] = ''
 
 case node['platform']
